@@ -1,6 +1,5 @@
 require('dotenv').config();
 
-
 const { Client } = require('discord.js');
 const client = new Client();
 const PREFIX = "$";
@@ -11,7 +10,7 @@ client.on('ready', () => {
 
 client.on('message', message => {
     if(message.author.bot) return;
-    if(message.content === '!Dj'){
+    if(message.content === '!dj'){
         message.channel.send('Song').then(sentMessage =>{
             sentMessage.react('👍')
             sentMessage.react('👎');
