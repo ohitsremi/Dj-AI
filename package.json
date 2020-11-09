@@ -11,10 +11,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
     "discord.js": "^12.4.1",
     "dotenv": "^8.2.0",
     "eslint": "^7.12.1",
     "express": "^4.17.1",
+    "querystring": "^0.2.0",
+    "request": "^2.88.2",
     "spotify-web-api-node": "^5.0.0"
   }
 }

@@ -1,19 +1,26 @@
 require('dotenv').config({ path: '../.env' })
+// var express = require('express'); // Express web server framework
+// var request = require('request'); // "Request" library
+// var cors = require('cors');
+// var querystring = require('querystring');
+// var cookieParser = require('cookie-parser');
+
 var SpotifyWebApi = require('spotify-web-api-node');
-const SPOTIFY_ID = process.env.SPOTIFY_ID;
-const SPOTIFY_SECRET = process.env.SPOTIFY_SECRET;
-const SPOTIFY_REDIRECT = process.env.SPOTIFY_REDIRECT;
 const scopes = ['user-read-private', 'user-read-email']
+var client_id = process.env.SPOTIFY_ID; // Your client id
+var client_secret = process.env.SPOTIFY_SECRET; // Your secret
+var redirect_uri = process.env.SPOTIFY_REDIRECT; // Your redirect uri
 
 const express = require('express');
+const { request } = require('express');
 
 const app = express();
 
 // credentials are optional
 var spotifyApi = new SpotifyWebApi({
-    clientId: SPOTIFY_ID,
-    clientSecret: SPOTIFY_SECRET,
-    redirectUri: SPOTIFY_REDIRECT
+    clientId: client_id,
+    clientSecret: client_secret,
+    redirectUri: redirect_uri
   });
 
 app.get('/login', (req, res) => {
@@ -21,7 +28,6 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/callback', (req, res) => {
-    console.log('hello')
     const error = req.query.error;
     const code = req.query.code;
     const state = req.query.state;
@@ -47,7 +53,11 @@ app.get('/callback', (req, res) => {
 
         console.log(
             `Sucessfully retreived access token. Expires in ${expires_in} s.`
-        );
+        )
+
+        // GENERATE RANDOM SONG SEARCH BASED ON COUNTRY
+        request_valid_song(code, 'country');
+        
         res.send('Success! You can now close the window.');
 
         setInterval(async () => {
@@ -88,30 +98,51 @@ function getRandomSearch() {
 
 const randomOffset = Math.floor(Math.random() * 10000);
 
-function request_valid_song(genre=None) {
-    // # Cap the max number of requests until getting RICK ASTLEYED
-    // for (var i = 0; i <= 50; i++){
-        genre.replace(' ', '%20');
-        var query = `q=${getRandomSearch()}%20genre:%22${genre}`;
-        var types = ['track'];
-        var offset = randomOffset;
-        
-        spotifyApi.search(query, types, {offset: offset}, (data) => {
-            console.log(data);
+function request_valid_song(code, genre) {
+    console.log(code);
+    spotifyApi
+        .authorizationCodeGrant(code)
+        .then(function(data) {
+            console.log('data');
+            console.log('Retrieved access token', data.body['access_token']);
+
+            // Set the access token
+            spotifyApi.setAccessToken(data.body['access_token']);
+
+            // Use the access token to retrieve information about the user connected to it
+            genre.replace(' ', '%20');
+            var query = `q=${getRandomSearch()}%20genre:%22${genre}`;
+            var types = ['track'];
+            var offset = randomOffset;
+            return spotifyApi.search(query, types, {offset: offset});
+        })
+        .then(function(data) {
             // console.log('I got ' + data.body.tracks.total + ' results!');
             // console.log(data.body.tracks.items);
             // var artist = song_info['artists'][0]['name']
             // var song = song_info['name']
-            });
             // if (songs === undefined) {
             //     artist = "Rick Astley"
             //     song = "Never Gonna Give You Up"
             // }
-        // }
+            // }
+            // Print some information about the results
+            console.log('I got ' + data.body.tracks.total + ' results!');
+
+            // Go through the first page of results
+            var firstPage = data.body.tracks.items;
+            console.log('The tracks in the first page are (popularity in parentheses):');
+            firstPage.forEach(function(track, index) {
+            console.log(index + ': ' + track.name + ' (' + track.popularity + ')');
+            });
+        }).catch(function(err) {
+            console.log('Something went wrong:', err.message);
+        });
+
 }
 
-// request_valid_song("country");
 
+// request_valid_song('country');
 
 app.listen(8888, () =>
   console.log(
