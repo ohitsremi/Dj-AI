@@ -50,7 +50,7 @@ app.get('/callback', (req, res) => {
         )
 
         // TESTING GETTING SONGS
-        getSongsByGenre('pop');
+        // getSongsByGenre('pop');
 
         res.send('Success! You can now close the window.');
 
@@ -69,19 +69,27 @@ app.get('/callback', (req, res) => {
         });
 });
 
-function getSongsByGenre(genre) {
+async function getSongsByGenre(genre) {
     spotifyApi.getAvailableGenreSeeds();
-    spotifyApi.getRecommendations({limit: 5, seed_genres: [genre]})
+    var songs = await spotifyApi.getRecommendations({limit: 5, seed_genres: [genre]})
     .then(function(data) {
         var tracks = data.body.tracks;
+        var recs = [];
         Object.keys(tracks).forEach((key) => {
             var trackName = tracks[key]['name'];
             var isExplicit = tracks[key]['explicit']
             var trackURI = tracks[key]['uri'];
             console.log(trackName);
+            recs.push(trackName);
         });
-
+        console.log(genre);
+        return recs;
     });
+    return songs;
+}
+
+module.exports = {
+    getSongsByGenre
 }
 
 app.listen(8888, () =>
