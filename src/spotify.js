@@ -49,9 +49,6 @@ app.get('/callback', (req, res) => {
             `Sucessfully retreived access token. Expires in ${expires_in} s.`
         )
 
-        // TESTING GETTING SONGS
-        // getSongsByGenre('pop');
-
         res.send('Success! You can now close the window.');
 
         setInterval(async () => {
@@ -71,7 +68,7 @@ app.get('/callback', (req, res) => {
 
 async function getSongsByGenre(genre) {
     spotifyApi.getAvailableGenreSeeds();
-    var songs = await spotifyApi.getRecommendations({limit: 5, seed_genres: [genre]})
+    var songs = await spotifyApi.getRecommendations({limit: 1, seed_genres: [genre]})
     .then(function(data) {
         var tracks = data.body.tracks;
         var recs = [];
@@ -79,10 +76,8 @@ async function getSongsByGenre(genre) {
             var trackName = tracks[key]['name'];
             var isExplicit = tracks[key]['explicit']
             var trackURI = tracks[key]['uri'];
-            console.log(trackName);
             recs.push(trackName);
         });
-        console.log(genre);
         return recs;
     });
     return songs;
