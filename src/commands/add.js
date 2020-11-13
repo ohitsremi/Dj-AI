@@ -1,37 +1,18 @@
-const spotify = require('../spotify')
 const yt = require('../youtube');
-
 module.exports = {
-	name: 'genre',
-	description: 'have user pick a genre to randomly generate song!',
+	name: 'add',
+	description: 'searches for song from given arguments in youtube and plays or adds to the queue',
 	async execute(message, args) {
         const voiceChannel = message.member.voice.channel;
         const queue = message.client.queue;
-        const serverQueue = message.client.queue.get(message.guild.id);
-        if (!voiceChannel)
-            return message.channel.send(
-            "You need to be in a voice channel to play music!"
-            );
-        const permissions = voiceChannel.permissionsFor(message.client.user);
-        if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
-            return message.channel.send(
-            "I need the permissions to join and speak in your voice channel!"
-            );
+		const serverQueue = message.client.queue.get(message.guild.id);
+        if (!message.member.voice.channel) return message.channel.send('You have to be in a voice channel to pause music!');
+        if (args.length === 0) {
+            return message.channel.send(`You need to enter query after !add for what you want to search for`)
         }
-
-        message.channel.send(`You picked ${args} as your genre`);
-       
-        const song = await spotify.getSongsByGenre(args).then(songs => {
-            return songs[0];
-        });
-        console.log(song);
-        if (song.genre === `Couldn't find genre`) {
-            return message.channel.send(`We couldn't find the genre ${args}.`);
-        }
-
-        console.log(`spotify suggests: ${song.track}`);
         // youtube url and name for song
-        song['info'] = await yt.searchYT(song.search).then(info => {
+        var song = {}
+        song['info'] = await yt.searchYT(args.join(' ')).then(info => {
             return info;
         });
         song['info'][1] = yt.unicodeToChar(song['info'][1]);
@@ -68,5 +49,5 @@ module.exports = {
               `${song['info'][1]} has been added to the queue!`
             );
         }
-    },
+    }
 };

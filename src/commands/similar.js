@@ -1,35 +1,21 @@
-const spotify = require('../spotify')
+const spotify = require('../spotify');
 const yt = require('../youtube');
 
 module.exports = {
-	name: 'genre',
-	description: 'have user pick a genre to randomly generate song!',
+	name: 'similar',
+	description: 'add similar song to current song to queue!',
 	async execute(message, args) {
         const voiceChannel = message.member.voice.channel;
         const queue = message.client.queue;
         const serverQueue = message.client.queue.get(message.guild.id);
-        if (!voiceChannel)
-            return message.channel.send(
-            "You need to be in a voice channel to play music!"
-            );
-        const permissions = voiceChannel.permissionsFor(message.client.user);
-        if (!permissions.has("CONNECT") || !permissions.has("SPEAK")) {
-            return message.channel.send(
-            "I need the permissions to join and speak in your voice channel!"
-            );
-        }
-
-        message.channel.send(`You picked ${args} as your genre`);
        
-        const song = await spotify.getSongsByGenre(args).then(songs => {
+        const song = await spotify.getSimilarSong(serverQueue.songs[0]['id']).then(songs => {
             return songs[0];
         });
         console.log(song);
-        if (song.genre === `Couldn't find genre`) {
-            return message.channel.send(`We couldn't find the genre ${args}.`);
-        }
 
         console.log(`spotify suggests: ${song.track}`);
+
         // youtube url and name for song
         song['info'] = await yt.searchYT(song.search).then(info => {
             return info;

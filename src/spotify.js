@@ -65,18 +65,54 @@ app.get('/callback', (req, res) => {
         res.send(`Error getting Tokens: ${error}`);
         });
 });
+async function isValidGenre(genre) {
+    const genres = await spotifyApi.getAvailableGenreSeeds().then(res => {
+        return res.body.genres
+    });
+    return genres.some(g => g == genre);
+}
 
 async function getSongsByGenre(genre) {
-    spotifyApi.getAvailableGenreSeeds();
-    var songs = await spotifyApi.getRecommendations({limit: 1, seed_genres: [genre]})
+    const valid = await isValidGenre(genre).then(valid => {return valid});
+    if (valid) {
+        var songs = await spotifyApi.getRecommendations({limit: 1, seed_genres: [genre]})
+        .then(function(data) {
+            var tracks = data.body.tracks;
+            var recs = [];
+            Object.keys(tracks).forEach((key) => {
+                var trackName = tracks[key]['name'];
+                var trackArtist = tracks[key]['artists'][0]['name']
+                var trackId = tracks[key]['id'];
+                recs.push({
+                    genre: genre,
+                    track: trackName,
+                    search: `${trackName} by ${trackArtist}`,
+                    id: trackId
+                });
+            });
+            return recs;
+        });
+        return songs;
+    } else {
+        return [{genre: `Couldn't find genre`}];
+    }
+    
+}
+
+async function getSimilarSong(songId) {
+    var songs = await spotifyApi.getRecommendations({limit: 1, seed_tracks: [songId]})
     .then(function(data) {
         var tracks = data.body.tracks;
         var recs = [];
         Object.keys(tracks).forEach((key) => {
             var trackName = tracks[key]['name'];
-            var isExplicit = tracks[key]['explicit']
-            var trackURI = tracks[key]['uri'];
-            recs.push(trackName);
+            var trackArtist = tracks[key]['artists'][0]['name']
+            var trackId = tracks[key]['id'];
+            recs.push({
+                track: trackName,
+                search: `${trackName} by ${trackArtist}`,
+                id: trackId
+            });
         });
         return recs;
     });
@@ -84,7 +120,8 @@ async function getSongsByGenre(genre) {
 }
 
 module.exports = {
-    getSongsByGenre
+    getSongsByGenre,
+    getSimilarSong
 }
 
 app.listen(8888, () =>
