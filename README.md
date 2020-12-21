@@ -1,4 +1,9 @@
 <h1 align=center> Discord DJ </h1>
+<br>
+<p align="center">
+  <img src="src/Discord DJ.PNG" width="750" height="300"/>
+</p>
+<br>
 
 ## Inspiration
 Introducing the Discord DJ! All of us love the functionality in Discord to play music in voice channels, but we felt that more could be done to enhance this feature. Through this project, we sought to creatively optimize the experience of playing music in Discord by creating a bot that adjusts songs within a queue based on popular demand!
